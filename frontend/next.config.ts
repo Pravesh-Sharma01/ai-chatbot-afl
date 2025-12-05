@@ -1,10 +1,11 @@
 /// <reference types="node" />
 import type { NextConfig } from "next";
 
-const backendDomainFiber: string = process.env.BACKEND_DOMAIN_FIBER || "http://localhost:8002";
-const backendDomainMotor: string = process.env.BACKEND_DOMAIN_MOTOR || "http://localhost:8003";
-const backendDomainHR: string = process.env.BACKEND_DOMAIN_HR || "http://localhost:8000";
-const backendDomainClaim: string = process.env.BACKEND_DOMAIN_CLAIM || "http://localhost:8000";
+const backendDomainFiber: string = process.env.BACKEND_DOMAIN_FIBER || "http://127.0.0.1:8002";
+const backendDomainMotor: string = process.env.BACKEND_DOMAIN_MOTOR || "http://127.0.0.1:8003";
+const backendDomainHR: string = process.env.BACKEND_DOMAIN_HR || "http://127.0.0.1:8000";
+const backendDomainClaim: string = process.env.BACKEND_DOMAIN_CLAIM || "http://127.0.0.1:8004";
+const backendDomainManufacturing: string = process.env.BACKEND_DOMAIN_MANUFACTURING || "http://127.0.0.1:8005";
 
 const nextConfig: NextConfig = {
   async rewrites() {
@@ -28,6 +29,10 @@ const nextConfig: NextConfig = {
       {
         source: "/api/claim/chat",
         destination: `${backendDomainClaim}/chat`,
+      },
+      {
+        source: "/api/manufacturing/chat",
+        destination: `${backendDomainManufacturing}/chat`,
       },
     ];
   },
