@@ -13,8 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . .
 
-# Expose port for FastAPI (default: 8000)
-EXPOSE 8002
+# Expose port for FastAPI
+EXPOSE 8005
 
 # Start the FastAPI app with Uvicorn
-CMD ["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8002"]
+CMD ["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8005"]
+

@@ -1,4 +1,8 @@
-semantic-kernel
-dotenv
+
 neo4j
 openai
+fastapi
+uvicorn
+python-dotenv
+semantic-kernel
+python-dotenv

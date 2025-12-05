@@ -21,7 +21,8 @@ AZURE_EMBED_KEY      = os.getenv("AZURE_EMBEDDING_OPENAI_API_KEY")
 AZURE_EMBED_ENDPOINT = os.getenv("AZURE_EMBEDDING_OPENAI_ENDPOINT")
 AZURE_EMBED_MODEL    = os.getenv("AZURE_OPENAI_EMBEDDING_MODEL")
 
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+# Lazy initialization - driver will be created when needed
+driver = None
 
 embed_client = AzureOpenAI(
     api_key = AZURE_EMBED_KEY,
@@ -46,42 +47,77 @@ def embed(text: str) -> np.ndarray:
 
 
 # ======================================================
+# INITIALIZE DRIVER (LAZY)
+# ======================================================
+def _get_driver():
+    global driver
+    if driver is None:
+        if not NEO4J_URI or not NEO4J_USER or not NEO4J_PASSWORD:
+            raise ValueError("Neo4j connection details not configured. Please set NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD environment variables.")
+        driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    return driver
+
+
+# ======================================================
 # LOAD & PRECOMPUTE EMBEDDINGS (RUN ONCE)
 # ======================================================
 def load_and_cache():
     global PRODUCTS, VECTORS
 
-    cypher = """
-    MATCH (p:Product)
-    OPTIONAL MATCH (p)-[:HAS_APPLICATION]->(a:Application)
-    OPTIONAL MATCH (p)-[:HAS_FEATURE]->(f:Feature)
-    RETURN p.name AS name,
-           collect(DISTINCT a.text) AS applications,
-           collect(DISTINCT f.text) AS features
-    """
+    if not NEO4J_URI or not NEO4J_USER or not NEO4J_PASSWORD:
+        print("⚠️ Neo4j not configured. Skipping product cache initialization.")
+        PRODUCTS = []
+        VECTORS = None
+        return
 
-    with driver.session(database=DB) as session:
-        rows = session.run(cypher)
-        PRODUCTS = [dict(r) for r in rows]
+    try:
+        _driver = _get_driver()
+        
+        cypher = """
+        MATCH (p:Product)
+        OPTIONAL MATCH (p)-[:HAS_APPLICATION]->(a:Application)
+        OPTIONAL MATCH (p)-[:HAS_FEATURE]->(f:Feature)
+        RETURN p.name AS name,
+               collect(DISTINCT a.text) AS applications,
+               collect(DISTINCT f.text) AS features
+        """
 
-    # build embeddings ONCE
-    vectors = []
+        with _driver.session(database=DB) as session:
+            rows = session.run(cypher)
+            PRODUCTS = [dict(r) for r in rows]
 
-    for p in PRODUCTS:
-        apps = " ".join(p.get("applications") or [])
-        feats = " ".join(p.get("features") or [])
-        text = apps + " " + feats
+        # build embeddings ONCE
+        vectors = []
 
-        vectors.append(embed(text))
+        for p in PRODUCTS:
+            apps = " ".join(p.get("applications") or [])
+            feats = " ".join(p.get("features") or [])
+            text = apps + " " + feats
 
-    VECTORS = np.vstack(vectors)
-    print(f"⚡ Cached {len(PRODUCTS)} product embeddings in RAM.")
+            vectors.append(embed(text))
+
+        if vectors:
+            VECTORS = np.vstack(vectors)
+            print(f"⚡ Cached {len(PRODUCTS)} product embeddings in RAM.")
+        else:
+            VECTORS = None
+            print("⚠️ No products found in Neo4j database.")
+    except Exception as e:
+        print(f"⚠️ Failed to load products from Neo4j: {e}")
+        PRODUCTS = []
+        VECTORS = None
 
 
 # ======================================================
 # SEMANTIC SEARCH (VERY FAST)
 # ======================================================
 def search_fast(query: str):
+    if VECTORS is None or len(PRODUCTS) == 0:
+        return {
+            "name": "",
+            "applications": [],
+            "features": []
+        }
 
     q_vec = embed(query)
 
@@ -110,5 +146,5 @@ class ProductSearchPlugin:
         return json.dumps(result, ensure_ascii=False)
 
 
-# load embeddings ONCE at import
-load_and_cache()
+# Note: load_and_cache() should be called during FastAPI startup, not at import time
+# This allows proper error handling and ensures environment variables are loaded
