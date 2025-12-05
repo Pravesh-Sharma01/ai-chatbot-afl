@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-dotenv
+semantic-kernel
+azure-search-documents
+azure-core
+pyodbc
+neo4j
+requests
+pypdf

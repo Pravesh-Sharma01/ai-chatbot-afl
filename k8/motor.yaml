@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: motor
+  labels:
+    app: motor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: motor
+  template:
+    metadata:
+      labels:
+        app: motor
+    spec:
+      containers:
+        - name: motor
+          image: motor
+          ports:
+            - containerPort: 8003
+          env:
+          - name: AZURE_OPENAI_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-endpoint
+                key: azure-openai-endpoint.txt
+          - name: AZURE_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-api-key
+                key: azure-openai-api-key.txt
+          - name: AZURE_DEPLOYMENT_NAME
+            valueFrom:
+              secretKeyRef:
+                name: azure-deployment-name
+                key: azure-deployment-name.txt
+          - name: AZURE_API_VERSION
+            valueFrom:
+              secretKeyRef:
+                name: azure-api-version
+                key: azure-api-version.txt
+          - name: AZURE_FILESHARE_CONN_STR
+            valueFrom:
+              secretKeyRef:
+                name: azure-fileshare-conn-str
+                key: azure-fileshare-conn-str.txt
+          - name: AZURE_FILESHARE_NAME
+            valueFrom:
+              secretKeyRef:
+                name: azure-file-share-name
+                key: azure-file-share-name.txt
+          - name: AZURE_OPENAI_EMBEDDING_MODEL
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-embedding-model
+                key: azure-openai-embedding-model.txt
+          - name: AZURE_EMBEDDING_OPENAI_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: azure-embedding-openai-endpoint
+                key: azure-embedding-openai-endpoint.txt
+          - name: AZURE_EMBEDDING_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-embedding-openai-api-key
+                key: azure-embedding-openai-api-key.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: motor
+spec:
+  type: ClusterIP
+  selector:
+    app: motor
+  ports:
+    - protocol: TCP
+      port: 8003
+      targetPort: 8003

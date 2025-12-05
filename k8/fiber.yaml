@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fiber
+  labels:
+    app: fiber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fiber
+  template:
+    metadata:
+      labels:
+        app: fiber
+    spec:
+      containers:
+        - name: fiber
+          image: fiber
+          ports:
+            - containerPort: 8002
+          env:
+          - name: AZURE_OPENAI_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-endpoint
+                key: azure-openai-endpoint.txt
+          - name: AZURE_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-api-key
+                key: azure-openai-api-key.txt
+          - name: AZURE_DEPLOYMENT_NAME
+            valueFrom:
+              secretKeyRef:
+                name: azure-deployment-name
+                key: azure-deployment-name.txt
+          - name: AZURE_API_VERSION
+            valueFrom:
+              secretKeyRef:
+                name: azure-api-version
+                key: azure-api-version.txt
+          - name: COSMOS_DB_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-endpoint
+                key: cosmos-db-endpoint.txt
+          - name: COSMOS_DB_KEY
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-key
+                key: cosmos-db-key.txt
+          - name: COSMOS_DB_DATABASE_ID
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-database-id
+                key: cosmos-db-database-id.txt
+          - name: COSMOS_DB_CONTAINER_ID
+            valueFrom:
+              secretKeyRef:
+                name: fiber-cosmos-db-container-id
+                key: fiber-cosmos-db-container-id.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fiber
+spec:
+  type: ClusterIP
+  selector:
+    app: fiber
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002

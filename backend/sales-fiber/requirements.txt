@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+semantic-kernel[mcp]
+pydantic
+fastmcp
+mcp-cli
+sse-starlette
+python-dotenv
+azure-cosmos
+azure-storage-file-share
+pdfplumber

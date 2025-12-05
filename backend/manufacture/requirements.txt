@@ -1,0 +1,4 @@
+semantic-kernel
+dotenv
+neo4j
+openai

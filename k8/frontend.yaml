@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: frontend
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: BACKEND_DOMAIN_FIBER
+          valueFrom:
+            secretKeyRef:
+              name: backend-domain-fiber
+              key: backend-domain-fiber.txt
+        - name: BACKEND_DOMAIN_MOTOR
+          valueFrom:
+            secretKeyRef:
+              name: backend-domain-motor
+              key: backend-domain-motor.txt
+        - name: BACKEND_DOMAIN_HR
+          valueFrom:
+            secretKeyRef:
+              name: backend-domain-hr
+              key: backend-domain-hr.txt
+        - name: BACKEND_DOMAIN_CLAIM
+          valueFrom:
+            secretKeyRef:
+              name: backend-domain-claim
+              key: backend-domain-claim.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr
+  labels:
+    app: hr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hr
+  template:
+    metadata:
+      labels:
+        app: hr
+    spec:
+      containers:
+        - name: hr
+          image: hr
+          ports:
+            - containerPort: 8000
+          env:
+          - name: AZURE_OPENAI_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-endpoint
+                key: azure-openai-endpoint.txt
+          - name: AZURE_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-api-key
+                key: azure-openai-api-key.txt
+          - name: AZURE_DEPLOYMENT_NAME
+            valueFrom:
+              secretKeyRef:
+                name: azure-deployment-name
+                key: azure-deployment-name.txt
+          - name: AZURE_API_VERSION
+            valueFrom:
+              secretKeyRef:
+                name: azure-api-version
+                key: azure-api-version.txt
+          - name: COSMOS_DB_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-endpoint
+                key: cosmos-db-endpoint.txt
+          - name: COSMOS_DB_KEY
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-key
+                key: cosmos-db-key.txt
+          - name: COSMOS_DB_DATABASE_ID
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-database-id
+                key: cosmos-db-database-id.txt
+          - name: COSMOS_DB_CONTAINER_ID
+            valueFrom:
+              secretKeyRef:
+                name: cosmos-db-container-id
+                key: cosmos-db-container-id.txt
+          - name: AZURE_FILESHARE_CONN_STR
+            valueFrom:
+              secretKeyRef:
+                name: azure-fileshare-conn-str
+                key: azure-fileshare-conn-str.txt
+          - name: AZURE_FILESHARE_NAME
+            valueFrom:
+              secretKeyRef:
+                name: azure-file-share-name
+                key: azure-file-share-name.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hr
+spec:
+  type: ClusterIP
+  selector:
+    app: hr
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

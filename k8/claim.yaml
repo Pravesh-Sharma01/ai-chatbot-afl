@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claim
+  labels:
+    app: claim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claim
+  template:
+    metadata:
+      labels:
+        app: claim
+    spec:
+      containers:
+        - name: claim
+          image: claim
+          ports:
+            - containerPort: 8000
+          env:
+          - name: AZURE_OPENAI_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-endpoint
+                key: azure-openai-endpoint.txt
+          - name: AZURE_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-openai-api-key
+                key: azure-openai-api-key.txt
+          - name: AZURE_OPENAI_DEPLOYMENT
+            valueFrom:
+              secretKeyRef:
+                name: azure-deployment-name
+                key: azure-deployment-name.txt
+          - name: AZURE_OPENAI_API_VERSION
+            valueFrom:
+              secretKeyRef:
+                name: azure-api-version
+                key: azure-api-version.txt
+          - name: AZURE_SQL_SERVER
+            valueFrom:
+              secretKeyRef:
+                name: azure-sql-server
+                key: azure-sql-server.txt
+          - name: AZURE_SQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: azure-sql-database
+                key: azure-sql-database.txt
+          - name: AZURE_SQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: azure-sql-user
+                key: azure-sql-user.txt
+          - name: AZURE_SQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-sql-password
+                key: azure-sql-password.txt
+          - name: AZURE_SQL_DRIVER
+            value: "ODBC Driver 18 for SQL Server"
+          - name: AZURE_SEARCH_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: azure-search-endpoint
+                key: azure-search-endpoint.txt
+          - name: AZURE_SEARCH_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-search-key
+                key: azure-search-key.txt
+          - name: AZURE_SEARCH_INDEX_NAME
+            value: "insurance"
+          - name: NEO4J_URI
+            valueFrom:
+              secretKeyRef:
+                name: neo4j-uri
+                key: neo4j-uri.txt
+          - name: NEO4J_USER
+            valueFrom:
+              secretKeyRef:
+                name: neo4j-user
+                key: neo4j-user.txt
+          - name: NEO4J_PASS
+            valueFrom:
+              secretKeyRef:
+                name: neo4j-pass
+                key: neo4j-pass.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claim
+spec:
+  type: ClusterIP
+  selector:
+    app: claim
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+
