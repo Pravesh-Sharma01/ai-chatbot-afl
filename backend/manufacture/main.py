@@ -1,6 +1,7 @@
 import os
 import logging
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
 
@@ -47,27 +48,11 @@ class AskRequest(BaseModel):
 
 
 # -------------------------------------------------------------------
-# FastAPI App
+# Lifespan (Startup / Shutdown)
 # -------------------------------------------------------------------
-app = FastAPI(
-    title="ManufactureAgent",
-    version="1.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-# -------------------------------------------------------------------
-# Startup / Shutdown
-# -------------------------------------------------------------------
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     global kernel, chat_agent
     
     logger.info("🚀 Initializing ManufactureAgent ...")
@@ -104,10 +89,28 @@ async def startup_event():
     logger.info("✅ Semantic Kernel ChatCompletionAgent initialized.")
     logger.info("🤖 ManufactureAgent ready.")
 
+    yield
 
-@app.on_event("shutdown")
-async def shutdown_event():
+    # Shutdown
     logger.info("❌ FastAPI shutdown.")
+
+
+# -------------------------------------------------------------------
+# FastAPI App
+# -------------------------------------------------------------------
+app = FastAPI(
+    title="ManufactureAgent",
+    version="1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # -------------------------------------------------------------------
