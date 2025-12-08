@@ -19,7 +19,7 @@ export const useGetLatestJobs = () => {
             errorMessage = errorJson.message || JSON.stringify(errorJson);
           } catch {
             // If not JSON, fallback to text
-            errorMessage = await response.text();
+            errorMessage = await response.json();
           }
 
           throw new Error(errorMessage);
